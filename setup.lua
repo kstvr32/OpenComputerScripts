@@ -48,6 +48,6 @@ end
 -- INSTALL SCRIPTS
 
 shell.setWorkingDirectory(workDir)
-for i=1, #libs do
+for i=1, #scripts do
     shell.execute(string.format('wget -f %s%s/%s', repo, branch, scripts[i]))
 end
