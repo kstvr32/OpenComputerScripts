@@ -50,11 +50,10 @@ end
 local scriptDir = workDir .. "scripts/"
 
 print("Removing Scripts")
-filesystem.remove(libDir)
+filesystem.remove(scriptDir)
 
 print("Creating Scripts")
-filesystem.makeDirectory(libDir)
-shell.setWorkingDirectory(libDir)
+filesystem.makeDirectory(scriptDir)
 shell.setWorkingDirectory(scriptDir)
 for i=1, #scripts do
     shell.execute(string.format('wget -f %s%s/scripts/%s', repo, branch, scripts[i]))
