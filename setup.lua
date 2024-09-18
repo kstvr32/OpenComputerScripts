@@ -1,3 +1,5 @@
+-- wget https://raw.githubusercontent.com/kstvr32/OpenComputerScripts/main/setup.lua && setup
+
 local shell = require('shell')
 local filesystem = require("filesystem")
 local args = {...}
@@ -35,6 +37,8 @@ filesystem.remove(libDir)
 filesystem.makeDirectory(libDir)
 shell.setWorkingDirectory(libDir)
 for i=1, #libs do
-    shell.execute(string.format('wget -f %s%s/%s', repo, branch, libs[i]))
+    shell.execute(string.format('wget -f %s%s/lib/%s', repo, branch, libs[i]))
     print("downloaded", libs[i])
 end
+
+shell.setWorkingDirectory(workDir)
