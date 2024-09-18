@@ -12,7 +12,7 @@ local tankSide = sides.south
 local hatchSide = sides.north
 
 local leverChannel = 111
-local blackHoleInputChannel = 112
+local blackHoleSeedChannel = 112
 local itemDetectorChannel = 113
 local activityDetectorChannel = 114
 local machineControllerChannel = 115
@@ -77,8 +77,8 @@ end
 
 local function insertBlackHole()
     print("turning on black hole compressor")
-    setWirelessOutput(blackHoleSeedInputChannel, true)
-    setWirelessOutput(blackHoleSeedInputChannel, false)
+    setWirelessOutput(blackHoleSeedChannel, true)
+    setWirelessOutput(blackHoleSeedChannel, false)
 
     print("inserting black hole closer and seed")
     setWirelessOutput(machineControllerChannel, true)
@@ -145,6 +145,7 @@ local function shutdown()
     while(getWirelessInput(activityDetectorChannel) ~= false) do
         os.sleep(0.05)
     end
+
 
     state.blackHole = false
 end
