@@ -13,6 +13,9 @@ local libs = {
     'log.lua',
     'nbt.lua'
 }
+local scripts = {
+    'test.lua'
+}
 
 -- BRANCH
 if #args >= 1 then
@@ -34,11 +37,17 @@ local libDir = workDir .. "lib/"
 
 print("Removing Library")
 filesystem.remove(libDir)
+
+print("Creating Library")
 filesystem.makeDirectory(libDir)
 shell.setWorkingDirectory(libDir)
 for i=1, #libs do
     shell.execute(string.format('wget -f %s%s/lib/%s', repo, branch, libs[i]))
-    print("downloaded", libs[i])
 end
 
+-- INSTALL SCRIPTS
+
 shell.setWorkingDirectory(workDir)
+for i=1, #libs do
+    shell.execute(string.format('wget -f %s%s/%s', repo, branch, scripts[i]))
+end
