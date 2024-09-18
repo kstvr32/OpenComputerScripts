@@ -17,6 +17,8 @@ local scripts = {
     'test.lua'
 }
 
+local workDir = "/home/"
+
 -- BRANCH
 if #args >= 1 then
     branch = args[1]
@@ -32,7 +34,6 @@ else
 end
 
 -- INSTALL LIB
-local workDir = "/home/"
 local libDir = workDir .. "lib/"
 
 print("Removing Library")
@@ -46,8 +47,18 @@ for i=1, #libs do
 end
 
 -- INSTALL SCRIPTS
+local scriptDir = workDir .. "scripts/"
 
-shell.setWorkingDirectory(workDir)
+print("Removing Scripts")
+filesystem.remove(libDir)
+
+print("Creating Scripts")
+filesystem.makeDirectory(libDir)
+shell.setWorkingDirectory(libDir)
+shell.setWorkingDirectory(scriptDir)
 for i=1, #scripts do
-    shell.execute(string.format('wget -f %s%s/%s', repo, branch, scripts[i]))
+    shell.execute(string.format('wget -f %s%s/scripts/%s', repo, branch, scripts[i]))
 end
+
+-- SET SHELL CONTEXT
+shell.setWorkingDirectory(workDir)
