@@ -8,14 +8,14 @@ local redstones = component.list("redstone")
 local redstoneReader = component.proxy(redstones())
 local redstoneWriter = component.proxy(redstones())
 
-local tankSide = sides.south
-local hatchSide = sides.north
+local tankSide = sides.east
+local hatchSide = sides.west
 
-local leverChannel = 111
-local blackHoleSeedChannel = 112
-local itemDetectorChannel = 113
-local activityDetectorChannel = 114
-local machineControllerChannel = 115
+local blackHoleSeedChannel = 112 -- when this pulses, should insert a single black hole seed and. can use translocaters on regulate mode
+local itemDetectorChannel = 113 -- should turn on when the black hole seed/collapser are in the input bus, then off when they are consumed
+local activityDetectorChannel = 114 -- should transmit machine activity
+local machineControllerChannel = 115 -- controls machine status
+local blackHoleCollapserChannel = 116 -- when this pulses, should insert a single black hole collapser. can use translocaters on regulate mode
 
 local state = {
     blackHole = false,
@@ -75,19 +75,23 @@ local function getTick()
     return os.time() * 1000/60/60
 end
 
-local function insertBlackHole()
-    print("turning on black hole compressor")
-    setWirelessOutput(blackHoleSeedChannel, true)
-    setWirelessOutput(blackHoleSeedChannel, false)
+local function insertAndWaitForConsumption(channel)
+    setWirelessOutput(channel, true)
 
-    print("inserting black hole closer and seed")
-    setWirelessOutput(machineControllerChannel, true)
-
-    print("waiting for black hole to be created")
-    while(getWirelessInput(itemDetectorChannel) ~= false) do
+    while(not getWirelessInput(itemDetectorChannel)) do
         os.sleep(0.05)
     end
 
+    setWirelessOutput(channel, false)
+
+    while(getWirelessInput(itemDetectorChannel)) do
+        os.sleep(0.05)
+    end
+end
+
+local function insertBlackHole()
+    print("inserting black hole seed")
+    insertAndWaitForConsumption(blackHoleSeedChannel)
     print("black hole created!")
 
     state.startTick = getTick()
@@ -98,7 +102,7 @@ local function insertBlackHole()
     state.spacetimeUsed = 0
 end
 
-local function update(paused)
+local function updateState(paused)
     -- no need to update if black hole is not running
     if state.blackHole == false then return end
 
@@ -129,23 +133,17 @@ local function shouldPauseStability()
     local currTick = getTick()
     local ticksPaused = currTick - state.pausedStartTick
 
-    print("Paused for "..ticksPaused.." ticks")
-
-    if ticksPaused > 100 then return false else return true end
+    if ticksPaused > 400 then return false else return true end
 end
 
 
 local function shutdown()
     -- turn off and wait for machine to finish working
 
-    print("disabling machine")
-    setWirelessOutput(machineControllerChannel, false)
+    insertAndWaitForConsumption(blackHoleCollapserChannel)
+    emptyHatch()
 
-    print("waiting for recipe to finish")
-    while(getWirelessInput(activityDetectorChannel) ~= false) do
-        os.sleep(0.05)
-    end
-
+    print("black hole collapsed")
 
     state.blackHole = false
 end
@@ -168,11 +166,11 @@ local function updateUser()
 
 end
 
-while(true) do
-    -- if not blackhole, start one
-    if state.blackHole == false then 
-        insertBlackHole()
-    else
+-- assumes that BHC has no active black hole
+local function runBlackholeCycle()
+    insertBlackHole()
+
+    while(true) do
         -- either we pause the stability with spacetime or update it
         local paused = shouldPauseStability()
         if paused then 
@@ -181,14 +179,15 @@ while(true) do
             -- if we've already paused, then reset
             if state.pausedStartTick ~= 0 then 
                 shutdown()
-                emptyHatch()
+                break
             end
         end
-        update(paused)
-    end
+        updateState(paused)
+        
+        updateUser()
     
-    updateUser()
-    --print(dump(state))
-
-    os.sleep(1)
+        os.sleep(1)
+    end
 end
+
+runBlackholeCycle()

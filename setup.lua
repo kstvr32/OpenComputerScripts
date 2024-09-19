@@ -14,7 +14,8 @@ local libs = {
     'nbt.lua'
 }
 local scripts = {
-    'test.lua'
+    'test.lua',
+    'blackhole.lua'
 }
 
 local workDir = "/home/"
