@@ -15,7 +15,8 @@ local libs = {
 }
 local scripts = {
     'test.lua',
-    'blackhole.lua'
+    'blackhole.lua',
+    'ae2.lua'
 }
 
 local workDir = "/home/"
