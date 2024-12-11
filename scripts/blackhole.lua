@@ -20,7 +20,6 @@ local START_STABILITY = 100 -- 100 except when testing
 local blackHoleSeedChannel = 112 -- when this pulses, should insert a single black hole seed and. can use vanilla hopper and a NOT gate
 local blackHoleCollapserChannel = 116 -- when this pulses, should insert a single black hole collapser. can use vanilla hopper and a NOT gate
 local itemDetectorChannel = 113 -- should turn on when the black hole seed/collapser are in the input bus, then off when they are consumed
-local activityDetectorChannel = 114 -- should transmit machine activity
 local ae2ToggleBusChannel = 117 -- controls a stocking hatch providing spacetime
 
 -------------------------------------------------------------------------
@@ -81,21 +80,15 @@ local function updateState(paused)
     -- no need to update if black hole is not running
     if state.blackHole == false then return end
 
-    local isMachineRunning = getWirelessInput(activityDetectorChannel)
     local currTick = getTick()
     local ticksSinceLastUpdate = currTick - state.lastUpdateTick
 
     state.lastUpdateTick = currTick
-    if not paused then 
-        if isMachineRunning then
-            state.stability = state.stability - ((ticksSinceLastUpdate / 20) * 0.75)
-        else 
-            state.stability = state.stability - (ticksSinceLastUpdate / 20)
-        end
-    else 
+    if not paused then
+        state.stability = state.stability - (ticksSinceLastUpdate / 20)
+    else
         -- calculate spacetime usage
         local secondsPaused = (currTick - state.pausedStartTick) / 20
-        
         local periods = math.floor(secondsPaused / 30)
 
         local spaceTimeUsePerSecond = 2^periods
@@ -110,7 +103,7 @@ local function shouldPauseStability()
     -- start pause if haven't yet
     if state.pausedStartTick == 0 then 
         state.pausedStartTick = getTick()
-        return true 
+        return true
     end
 
     local currTick = getTick()
@@ -134,7 +127,7 @@ end
 local function updateUser()
     local currTick = getTick()
     local ticksSinceStart = currTick - state.startTick
-    
+
     print("")
 
     print("black hole lifespan: "..(ticksSinceStart/20).."s")
@@ -162,11 +155,11 @@ local function runBlackholeCycle()
     while(true) do
         -- either we pause the stability with spacetime or update it
         local paused = shouldPauseStability()
-        if paused then 
+        if paused then
             enableSpaceTime()
         else
             -- if we've already paused, then reset
-            if state.pausedStartTick ~= 0 then 
+            if state.pausedStartTick ~= 0 then
                 shutdown()
                 break
             end
@@ -183,6 +176,7 @@ end
 
 
 while(true) do
+    print("waiting for contents in network...")
     if doesNetworkHaveContents() then
         print("found contents in network, starting up black hole")
         runBlackholeCycle()
